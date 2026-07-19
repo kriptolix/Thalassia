@@ -1,0 +1,33 @@
+* Adicionar sistema de ancora
+
+* aceleração constante sem cap, força aplicada deve manter o barco em movimento mas não acelerando.
+
+* modos manuais
+
+reduzir a força conforme a velocidade - A vela perde eficiência à medida que o barco se aproxima da velocidade máxima.
+adicionar arrasto hidrodinâmico
+
+# Calculo dos valores de buoyancy baseados em gravidade e massa, valores em Newtons
+Force per depth = massa x gravidade / numero de PlayerControls
+Max force = Force per depth x 3
+buoyancy damping = Force per depth / 10
+draft meters inicial = 1
+
+center mass local = y = position.y do ponto de flutuação + (position.y do ponto de flutuação x 0.1)
+
+Arquivos relativos a um jogo feito na unity 6.5 sobre um veleiro. Os sistemas estão funcionando mas há alguns problema, vou cita-los abaixo em ordem de importância: 
+1. Forças de arrasto e Perda de eficiência da vela parecem não estar funcionando corretamente, o barco ganha aceleração constante mesmo com forças minímas atuando.
+2. Há campos para arrasto em lugares diferentes, é necessário verificar o melhor o lugar para mantê-la, em moviment system buoyancy system
+3. Há movimento lateral excessivo, em alguns momentos o barco anda de lado de forma não natural.
+4. Não há adernamento visível.
+5. Provavelmente ha erro de calculo na mecânica que indica a ralação do vendo com a do modo de navegação, o modo de navegação considera 180 graus, mas o vento pode variar 360 graus em origem
+
+em caso de duvidas me consulte, se precisa ver outros arquivos avise.
+
+| Ângulo relativo ao vento real | Estado              | Potência parcial/total | 
+| ----------------------------- | ------------------- | ---------------------------------: | 
+| 75°–105°                      | Contra              |                            min–20% | 
+| 45°–75° e 105°–135°           | Bolina              |                             50–70% | 
+| 0°–45° e 135°–180°            | Través              |                            80–100% | 
+| 180°–240° e 300°–360°         | Largo               |                             70–90% |
+| 240°–300°                     | Popa                |                             40–60% | 
