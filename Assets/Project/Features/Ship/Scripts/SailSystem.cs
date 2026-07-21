@@ -17,9 +17,31 @@ using UnityEngine.Events;
 /// Largo, Popa) em vez de ângulo em passos de grau. O jogador escolhe a
 /// INTENÇÃO de navegação (mesma mecânica de toque/segurar/agrupamento); a
 /// tripulação ajusta o ângulo continuamente dentro do modo para acompanhar
-/// o vento aparente, sem intervenção do jogador, enquanto o vento for
-/// compatível com o modo escolhido. A eficiência cai gradualmente conforme
-/// o vento aparente sai da faixa ideal do modo selecionado.
+/// o vento, sem intervenção do jogador, enquanto o vento for compatível com
+/// o modo escolhido. Cada modo tem um TETO FÍSICO de eficiência diferente
+/// (idealEfficiencyTarget - ex.: Través=1.0, Popa=0.6, refletindo a curva
+/// polar real de um veleiro, onde través é o ponto de vela mais rápido e
+/// popa/contra são mais lentos mesmo perfeitamente trimados); dentro desse
+/// teto, a eficiência ainda cai gradualmente conforme o vento sai da faixa
+/// ideal do modo selecionado (ver CalculateTrimEfficiency).
+///
+/// IMPORTANTE - DOIS VENTOS, DOIS PROPÓSITOS DIFERENTES:
+///   - Qual MODO é válido/ideal (CalculateTrimEfficiency, sailModes) usa o
+///     vento REAL (realWind, recebido como parâmetro de CalculateForce) -
+///     "que tipo de navegação é essa, geometricamente, em relação ao vento
+///     de verdade".
+///   - A FORÇA final (thrustForce/lateralForce) e o ângulo visual da vela
+///     continuam usando o vento APARENTE (apparentWind) - a vela reage ao
+///     vento que ela realmente "sente", que inclui a velocidade do barco.
+/// Nunca trocar esses dois papéis entre si.
+///
+/// SISTEMA DE REFERÊNCIA da classificação de modo (vento real): círculo
+/// trigonométrico 0°-360°, com a POPA do barco apontando para 90° e,
+/// portanto, a PROA para 270° (oposto), e os dois través (bombordo/
+/// estibordo) em 0° e 180°. O ângulo usado é a direção (convenção "para
+/// onde sopra", igual ao WindSystem) do vento REAL, expressa nesse sistema
+/// local do barco - NÃO confundir com windAngleFromBow (0°-180°, vento
+/// aparente, usado só para força/HUD - ver mais abaixo).
 ///
 /// PROPULSÃO RESIDUAL: a eficiência do trim nunca cai a zero por causa do
 /// ângulo (piso mínimo, ver minResidualEfficiency) - só a ÁREA (abertura)
@@ -59,28 +81,60 @@ public class SailSystem : MonoBehaviour
     [SerializeField] private float minResidualEfficiency = 0.15f;
 
     [Header("Modos de Navegação (Trim)")]
-    [Tooltip("5 modos ordenados de 'Contra o Vento' (índice 0, mais próximo do vento) a 'Popa' (índice 4, vento de popa). O ângulo relevante é o ÂNGULO ENTRE O VENTO APARENTE E A PROA do barco (0° = vento vindo direto da proa, 180° = vento vindo direto da popa) - independente do ângulo da própria vela.")]
+    [Tooltip("5 modos. O ângulo relevante é a direção do VENTO REAL (não aparente!) expressa no sistema local do barco: círculo trigonométrico 0°-360°, popa=90°, proa=270°, través=0°/180° (ver docstring da classe). Contra e Popa usam 1 faixa; Bolina/Través/Largo usam 2 (uma para cada bordo) - índice 1 é o espelho do índice 0.")]
     [SerializeField]
     private SailModeRange[] sailModes = new SailModeRange[]
     {
-        new SailModeRange { modeName = "Contra",         idealMin = 25f,  idealMax = 40f,  acceptMin = 20f,  acceptMax = 50f  },
-        new SailModeRange { modeName = "Bolina",         idealMin = 40f,  idealMax = 65f,  acceptMin = 30f,  acceptMax = 75f  },
-        new SailModeRange { modeName = "Través",         idealMin = 70f,  idealMax = 100f, acceptMin = 55f,  acceptMax = 115f },
-        new SailModeRange { modeName = "Largo",          idealMin = 110f, idealMax = 145f, acceptMin = 95f,  acceptMax = 160f },
-        new SailModeRange { modeName = "Popa",           idealMin = 155f, idealMax = 180f, acceptMin = 140f, acceptMax = 180f },
+        new SailModeRange
+        {
+            modeName = "Contra",
+            idealEfficiencyTarget = 0.25f,
+            toleranceEfficiencyTarget = 0.15f,
+            idealRanges  = new[] { new AngleRange { min = 75f,  max = 105f } },
+            acceptRanges = new[] { new AngleRange { min = 70f,  max = 110f } },
+        },
+        new SailModeRange
+        {
+            modeName = "Bolina",
+            idealEfficiencyTarget = 0.7f,
+            toleranceEfficiencyTarget = 0.5f,
+            idealRanges  = new[] { new AngleRange { min = 45f,  max = 75f  }, new AngleRange { min = 105f, max = 135f } },
+            acceptRanges = new[] { new AngleRange { min = 40f,  max = 80f  }, new AngleRange { min = 100f, max = 140f } },
+        },
+        new SailModeRange
+        {
+            modeName = "Través",
+            idealEfficiencyTarget = 1.0f,
+            toleranceEfficiencyTarget = 0.8f,
+            idealRanges  = new[] { new AngleRange { min = 0f,   max = 45f  }, new AngleRange { min = 135f, max = 180f } },
+            acceptRanges = new[] { new AngleRange { min = 355f, max = 50f  }, new AngleRange { min = 130f, max = 185f } },
+        },
+        new SailModeRange
+        {
+            modeName = "Largo",
+            idealEfficiencyTarget = 0.9f,
+            toleranceEfficiencyTarget = 0.7f,
+            idealRanges  = new[] { new AngleRange { min = 180f, max = 240f }, new AngleRange { min = 300f, max = 360f } },
+            acceptRanges = new[] { new AngleRange { min = 175f, max = 245f }, new AngleRange { min = 295f, max = 5f   } },
+        },
+        new SailModeRange
+        {
+            modeName = "Popa",
+            idealEfficiencyTarget = 0.6f,
+            toleranceEfficiencyTarget = 0.4f,
+            idealRanges  = new[] { new AngleRange { min = 240f, max = 300f } },
+            acceptRanges = new[] { new AngleRange { min = 235f, max = 305f } },
+        },
     };
     [Tooltip("Índice inicial do modo de navegação (0 = Contra o Vento .. sailModes.Length-1 = Popa).")]
     [SerializeField] private int initialSailModeIndex = 2;
-    [Tooltip("Eficiência dentro da faixa ACEITÁVEL, fora da faixa ideal (ex.: 0.6 = 60%, conforme a spec).")]
-    [Range(0f, 1f)]
-    [SerializeField] private float acceptableRangeEfficiency = 0.6f;
     [Tooltip("ASSUMIDO: a spec pede 'queda acentuada' fora da faixa aceitável, mas não define a largura exata da transição. Graus além da borda da faixa aceitável até a eficiência (do trim) chegar a zero.")]
     [SerializeField] private float sharpFalloffRangeDegrees = 15f;
     [Tooltip("Sobreposição mínima desejada (graus) entre as faixas ACEITÁVEIS de modos vizinhos - dentro dela, os dois modos adjacentes ficam aceitáveis, então trocar de modo perto do limite não derruba a eficiência de repente. Só usada para avisar no Console (LogModeOverlaps) se você editar sailModes e a sobreposição ficar pequena demais - não afeta o cálculo de eficiência em si.")]
     [SerializeField] private float minDesiredModeOverlapDegrees = 10f;
 
     [Header("Suavização da Classificação de Modo")]
-    [Tooltip("Constante de tempo (segundos) de um filtro passa-baixa aplicado ao ângulo vento-proa ANTES de decidir a eficiência do trim (ideal/aceitável/fora). Evita que variações pequenas e rápidas (rajadas de vento, jitter de guinada) façam o modo 'piscar' entre ideal/aceitável/fora quadro a quadro. NÃO afeta o ângulo bruto reportado no HUD (windAngleFromBow) nem o ângulo VISUAL da vela - só a decisão de eficiência do trim. Curvas de verdade (que levam vários segundos) ainda são detectadas normalmente.")]
+    [Tooltip("Constante de tempo (segundos) de um filtro passa-baixa aplicado a DOIS ângulos, antes de decidir a eficiência do trim e o ângulo de referência da força: (1) o ângulo de classificação (vento REAL, sistema popa=90°) e (2) o ângulo vento-proa (vento APARENTE, 0°-180°, usado no trim de referência/força). Evita que variações pequenas e rápidas (rajadas de vento, jitter de guinada) façam o modo ou a força 'piscar' quadro a quadro. NÃO afeta o ângulo bruto reportado no HUD (windAngleFromBow) - só as decisões internas. Curvas de verdade (que levam vários segundos) ainda são detectadas normalmente.")]
     [SerializeField] private float modeClassificationSmoothingSeconds = 1.5f;
 
     [Header("Diferenciação entre tipos de vela (progressão futura do jogador)")]
@@ -113,16 +167,51 @@ public class SailSystem : MonoBehaviour
     [System.Serializable]
     public class SailOrderUnityEvent : UnityEvent<int, bool> { }
 
+    /// <summary>
+    /// Faixa angular no sistema de referência do vento REAL (0°-360°, círculo
+    /// trigonométrico, popa=90°/proa=270° - ver docstring da classe). Se
+    /// min > max, a faixa cruza 0°/360° (ex.: 355° a 50°).
+    /// </summary>
+    [System.Serializable]
+    public struct AngleRange
+    {
+        public float min;
+        public float max;
+
+        /// <summary>Verdadeiro se angle (0-360) está dentro desta faixa, cruzando 0°/360° quando min > max.</summary>
+        public bool Contains(float angle)
+        {
+            angle = NormalizeAngle(angle);
+            float a = NormalizeAngle(min);
+            float b = NormalizeAngle(max);
+            if (a <= b) return angle >= a && angle <= b;
+            return angle >= a || angle <= b;
+        }
+
+        /// <summary>Distância angular (graus, >=0) até a borda mais próxima; 0 se angle já está dentro.</summary>
+        public float DistanceTo(float angle)
+        {
+            if (Contains(angle)) return 0f;
+            float toMin = Mathf.Abs(Mathf.DeltaAngle(angle, min));
+            float toMax = Mathf.Abs(Mathf.DeltaAngle(angle, max));
+            return Mathf.Min(toMin, toMax);
+        }
+    }
+
     [System.Serializable]
     public class SailModeRange
     {
         public string modeName;
-        [Tooltip("Faixa ideal - eficiência 100%.")]
-        public float idealMin;
-        public float idealMax;
-        [Tooltip("Faixa aceitável (deve conter a faixa ideal) - eficiência = acceptableRangeEfficiency.")]
-        public float acceptMin;
-        public float acceptMax;
+        [Tooltip("Teto de eficiência FÍSICO deste modo (0-1), atingido quando o vento real está na(s) idealRanges - representa a velocidade máxima real desse ponto de vela (ex.: Través é o mais rápido, Popa é mais lento mesmo bem trimado) - independente da precisão do trim.")]
+        [Range(0f, 1f)]
+        public float idealEfficiencyTarget = 1f;
+        [Tooltip("Eficiência na faixa de TOLERÂNCIA (acceptRanges, fora da ideal) DESTE modo - valor explícito e independente por modo (não é mais uma fração/razão global do teto - cada modo tem sua própria queda, ex.: Través 100%->80%, mas Popa 60%->40%). Também é o valor usado na zona de SOBREPOSIÇÃO entre dois modos adjacentes (ex.: Popa/Largo): nessa zona sempre vale a tolerância do modo que o jogador tem SELECIONADO no momento, nunca a do modo vizinho.")]
+        [Range(0f, 1f)]
+        public float toleranceEfficiencyTarget = 0.6f;
+        [Tooltip("Faixa(s) IDEAIS (eficiência = idealEfficiencyTarget), no sistema do vento REAL (popa=90°). Contra/Popa: 1 faixa. Bolina/Través/Largo: 2 faixas (uma por bordo).")]
+        public AngleRange[] idealRanges;
+        [Tooltip("Faixa(s) ACEITÁVEIS/TOLERÂNCIA (deve conter as idealRanges de mesmo índice) - eficiência = toleranceEfficiencyTarget. Adjacente pode se sobrepor com a faixa aceitável de outro modo (ex.: Popa e Largo) - a sobreposição é intencional (permite trocar de modo sem ficar fora de faixa por um instante) e não muda qual toleranceEfficiencyTarget é usado: é sempre o do modo selecionado.")]
+        public AngleRange[] acceptRanges;
     }
 
     // --- Input recebido externamente (mesma interface -1/0/+1, "toque/segurar") ---
@@ -134,16 +223,23 @@ public class SailSystem : MonoBehaviour
     private DiscreteCommandState _modeState = new DiscreteCommandState();
     private int _trimSide = 1;
 
-    // Filtro passa-baixa do ângulo vento-proa, usado só pra decidir a
-    // eficiência do trim (ver header "Suavização da Classificação de Modo").
-    private float _smoothedWindAngleFromBow;
-    private bool _smoothedWindAngleInitialized = false;
+    // Filtros passa-baixa (ver header "Suavização da Classificação de Modo"):
+    // um para o ângulo de CLASSIFICAÇÃO (vento real, sistema popa=90°, usado
+    // só pra decidir o modo/eficiência) e outro para o ângulo vento-proa
+    // (vento aparente, 0°-180°, usado no ângulo de referência do trim/força).
+    private float _smoothedClassificationAngle;
+    private float _smoothedApparentWindAngleFromBow;
+    private bool _smoothedAnglesInitialized = false;
 
     // --- Estado atual (somente leitura para outros sistemas) ---
     /// <summary>Ângulo VISUAL atual da vela em relação ao casco (para animação do modelo 3D). Não é mais usado no cálculo de força - ver CalculateForce.</summary>
     public float CurrentSailAngle { get; private set; }
     public float CurrentSailOpenAmount { get; private set; }
     public float EffectiveSailArea { get; private set; }
+    /// <summary>Ângulo entre o vento APARENTE e a PROA (0°-180°, 0=vento na proa, 180=vento na popa) do último CalculateForce - público para dar base a animações (telltales, flâmulas, etc.) sem precisar ler o SailForceResult inteiro.</summary>
+    public float CurrentApparentWindAngle { get; private set; }
+    /// <summary>Força (intensidade, m/s) do vento APARENTE do último CalculateForce - público para dar base a animações (ex.: intensidade de flutter do pano/flâmulas escala com isso).</summary>
+    public float CurrentApparentWindSpeed { get; private set; }
 
     /// <summary>Nível-alvo de abertura confirmado (0 = fechada, 1 = meia vela, 2 = vela cheia).</summary>
     public int TargetSailOpenLevel => _openState.targetLevel;
@@ -174,19 +270,25 @@ public class SailSystem : MonoBehaviour
     /// </summary>
     public struct SailForceResult
     {
-        /// <summary>Ângulo entre o vento aparente e a PROA do barco (0°-180°, independente do trim). 0° = vento na proa, 180° = vento na popa.</summary>
+        /// <summary>Ângulo entre o vento APARENTE e a PROA do barco (0°-180°, independente do bordo). 0° = vento na proa, 180° = vento na popa. Usado só para força/HUD/agulha - NÃO decide mais o modo de navegação (ver realWindClassificationAngle).</summary>
         public float windAngleFromBow;
+        /// <summary>Força (intensidade, m/s) do vento APARENTE - mesma fonte usada pra escalar sailForceMagnitude.</summary>
+        public float apparentWindSpeed;
+        /// <summary>Ângulo do vento REAL no sistema de referência do barco (0°-360°, círculo trigonométrico, popa=90°/proa=270° - ver docstring da classe). É este ângulo que decide o modo de navegação (inIdealRange/inAcceptableRange/trimEfficiency), não windAngleFromBow.</summary>
+        public float realWindClassificationAngle;
         public int sailModeIndex;
         public string sailModeName;
         public bool inIdealRange;
         public bool inAcceptableRange;
-        /// <summary>Eficiência final do trim (já com o piso residual aplicado).</summary>
+        /// <summary>Eficiência final do trim (0 a idealEfficiencyTarget do modo, já com o piso residual aplicado) - escala SÓ o empuxo (thrustMagnitude), não a força bruta.</summary>
         public float trimEfficiency;
+        /// <summary>Força BRUTA que a vela captura do vento (capacidade física do pano, antes do teto de eficiência por modo) - fonte comum de thrustMagnitude e lateralMagnitude, mas cada um escala essa magnitude de forma independente (ver CalculateForce).</summary>
         public float sailForceMagnitude;
         public Vector3 thrustForce;
         public Vector3 lateralForce;
+        /// <summary>Empuxo = sailForceMagnitude * trimEfficiency (teto do modo + precisão do trim) - não depende do ângulo geométrico de trim.</summary>
         public float thrustMagnitude;
-        /// <summary>Componente lateral da força da vela (heel + deriva) - um valor só, usado tanto para o torque de heel quanto para a translação lateral (ver ShipMovementSystem).</summary>
+        /// <summary>Componente lateral da força da vela (heel + deriva) - sailForceMagnitude * coeficiente geométrico do ângulo de trim (cos), independente de trimEfficiency. Um valor só, usado tanto para o torque de heel quanto para a translação lateral (ver ShipMovementSystem).</summary>
         public float lateralMagnitude;
     }
 
@@ -197,9 +299,10 @@ public class SailSystem : MonoBehaviour
     /// colateral leve, cosmético, usando Time.fixedDeltaTime - espera-se
     /// que este método seja chamado uma vez por FixedUpdate).
     /// </summary>
-    /// <param name="apparentWind">Vetor de vento aparente no plano XZ (windVector - velocidade do barco).</param>
+    /// <param name="apparentWind">Vetor de vento aparente no plano XZ (windVector - velocidade do barco). Usado SOMENTE para a força final (thrust/lateral) e o ângulo visual da vela.</param>
+    /// <param name="realWind">Vetor de vento REAL no plano XZ (WindSystem.GetWindVector(), sem subtrair a velocidade do barco). Usado SOMENTE para decidir o modo de navegação (ideal/aceitável/eficiência) - nunca para a força.</param>
     /// <param name="shipHeadingDeg">Heading do barco em graus (0-360, mesma convenção do WindSystem).</param>
-    public SailForceResult CalculateForce(Vector3 apparentWind, float shipHeadingDeg)
+    public SailForceResult CalculateForce(Vector3 apparentWind, Vector3 realWind, float shipHeadingDeg)
     {
         SailForceResult result = default;
         result.sailModeIndex = CurrentSailModeIndex;
@@ -208,34 +311,53 @@ public class SailSystem : MonoBehaviour
         float apparentWindSpeed = apparentWind.magnitude;
         float apparentWindDirection = NormalizeAngle(Mathf.Atan2(apparentWind.z, apparentWind.x) * Mathf.Rad2Deg);
 
-        // Ângulo entre o vento aparente e a PROA do barco (0° = vento vindo
+        // Ângulo entre o vento APARENTE e a PROA do barco (0° = vento vindo
         // direto de frente, 180° = vento vindo direto de trás empurrando o
-        // barco) - o "ponto de vela" clássico. Independente do ângulo da
-        // vela em si: apparentWindDirection é para ONDE o vento sopra, então
-        // a direção DE ONDE ele vem é o oposto (+180°); a diferença angular
-        // entre essa direção-de-origem e o heading, então invertida (180 -
-        // |delta|), dá 0 quando o vento vem de frente e 180 quando vem de trás.
+        // barco) - usado só para força/HUD/agulha de vento, NÃO decide mais
+        // o modo (ver realWindClassificationAngle abaixo). Independente do
+        // ângulo da vela em si: apparentWindDirection é para ONDE o vento
+        // sopra, então a direção DE ONDE ele vem é o oposto (+180°); a
+        // diferença angular entre essa direção-de-origem e o heading, então
+        // invertida (180 - |delta|), dá 0 quando o vento vem de frente e 180
+        // quando vem de trás.
         float windAngleFromBow = 180f - Mathf.Abs(Mathf.DeltaAngle(shipHeadingDeg, apparentWindDirection));
         result.windAngleFromBow = windAngleFromBow; // valor instantâneo, sem filtro - pro HUD/agulha de vento
+        result.apparentWindSpeed = apparentWindSpeed;
+        CurrentApparentWindAngle = windAngleFromBow;
+        CurrentApparentWindSpeed = apparentWindSpeed;
 
-        // Filtro passa-baixa exponencial, só pra decidir a eficiência do trim -
-        // evita que rajadas/jitter de guinada façam o modo "piscar" entre
-        // ideal/aceitável/fora quadro a quadro (ver header do campo). No
-        // primeiro frame, inicializa direto no valor bruto (sem isso o barco
-        // começaria classificado erradamente por alguns segundos até o filtro
-        // convergir).
-        if (!_smoothedWindAngleInitialized)
+        // Ângulo de CLASSIFICAÇÃO de modo, a partir do vento REAL: círculo
+        // trigonométrico local do barco, popa=90°/proa=270° (ver docstring
+        // da classe). direction do vento real (convenção "para onde sopra",
+        // igual ao WindSystem) menos o heading do barco, com um deslocamento
+        // de -90° pra alinhar a popa (heading+180° no referencial do mundo)
+        // com 90° neste sistema local.
+        float realWindDirection = NormalizeAngle(Mathf.Atan2(realWind.z, realWind.x) * Mathf.Rad2Deg);
+        float classificationAngle = NormalizeAngle(realWindDirection - shipHeadingDeg - 90f);
+        result.realWindClassificationAngle = classificationAngle; // valor instantâneo, sem filtro
+
+        // Filtros passa-baixa exponenciais (ver header do campo) - evitam que
+        // rajadas/jitter de guinada façam o modo ou a força "piscar" quadro a
+        // quadro. No primeiro frame, inicializa direto no valor bruto (sem
+        // isso o barco começaria classificado erradamente por alguns
+        // segundos até o filtro convergir). O ângulo de classificação (0-360)
+        // usa uma suavização ciente de wraparound (via Mathf.DeltaAngle) -
+        // Mathf.Lerp comum quebraria perto de 0°/360°.
+        if (!_smoothedAnglesInitialized)
         {
-            _smoothedWindAngleFromBow = windAngleFromBow;
-            _smoothedWindAngleInitialized = true;
+            _smoothedApparentWindAngleFromBow = windAngleFromBow;
+            _smoothedClassificationAngle = classificationAngle;
+            _smoothedAnglesInitialized = true;
         }
         else
         {
             float smoothingAlpha = 1f - Mathf.Exp(-Time.fixedDeltaTime / Mathf.Max(0.01f, modeClassificationSmoothingSeconds));
-            _smoothedWindAngleFromBow = Mathf.Lerp(_smoothedWindAngleFromBow, windAngleFromBow, smoothingAlpha);
+            _smoothedApparentWindAngleFromBow = Mathf.Lerp(_smoothedApparentWindAngleFromBow, windAngleFromBow, smoothingAlpha);
+            _smoothedClassificationAngle = NormalizeAngle(
+                _smoothedClassificationAngle + Mathf.DeltaAngle(_smoothedClassificationAngle, classificationAngle) * smoothingAlpha);
         }
 
-        float rawTrimEfficiency = CalculateTrimEfficiency(_smoothedWindAngleFromBow, CurrentSailModeIndex, out bool inIdeal, out bool inAcceptable);
+        float rawTrimEfficiency = CalculateTrimEfficiency(_smoothedClassificationAngle, CurrentSailModeIndex, out bool inIdeal, out bool inAcceptable);
         result.inIdealRange = inIdeal;
         result.inAcceptableRange = inAcceptable;
 
@@ -250,9 +372,9 @@ public class SailSystem : MonoBehaviour
         // continuamente ENQUANTO ele estiver dentro da faixa aceitável do
         // modo escolhido (ver docstring da classe). Fora dela, a vela fica
         // travada no limite que o modo permite - ela não "sabe" reagir a um
-        // vento incompatível com o modo selecionado. Reaproveita os mesmos
-        // acceptMin/acceptMax já usados em CalculateTrimEfficiency (mesma
-        // fonte de verdade, nenhum número novo).
+        // vento incompatível com o modo selecionado. Reaproveita as mesmas
+        // acceptRanges já usadas em CalculateTrimEfficiency (mesma fonte de
+        // verdade, só convertida de escala - ver FoldRealRangeToApparentBowRange).
         //
         // CORRIGIDO: antes disso, o ângulo de trim usava windAngleFromBow
         // BRUTO sem clamp nenhum - então com vento de popa (180°) e modo
@@ -262,10 +384,17 @@ public class SailSystem : MonoBehaviour
         // mesmo com a vela fisicamente sheeted pra perto do centro, o que
         // não faz sentido (deveria estar mais de banda/lateral, ou
         // efetivamente gasguetada).
+        //
+        // As faixas de sailModes agora estão no sistema do vento REAL
+        // (0°-360°, popa=90°) - incompatíveis em escala com o ângulo vento-
+        // proa APARENTE (0°-180°) usado aqui para a força. Por isso o clamp
+        // usa o equivalente 0°-180° da faixa aceitável do modo, derivado por
+        // fórmula (FoldRealRangeToApparentBowRange) a partir das mesmas
+        // acceptRanges já usadas em CalculateTrimEfficiency - nenhum número
+        // novo precisa ser configurado no Inspector.
         SailModeRange currentModeRange = GetModeRange(CurrentSailModeIndex);
-        float trimReferenceAngle = currentModeRange != null
-            ? Mathf.Clamp(_smoothedWindAngleFromBow, currentModeRange.acceptMin, currentModeRange.acceptMax)
-            : _smoothedWindAngleFromBow;
+        AngleRange apparentAcceptRange = FoldRealRangeToApparentBowRange(currentModeRange?.acceptRanges);
+        float trimReferenceAngle = Mathf.Clamp(_smoothedApparentWindAngleFromBow, apparentAcceptRange.min, apparentAcceptRange.max);
 
         // Ângulo VISUAL da vela dentro do modo: ASSUMIDO como metade do
         // ângulo de referência do trim acima (aproximação clássica - a vela
@@ -276,7 +405,14 @@ public class SailSystem : MonoBehaviour
         float targetVisualAngle = Mathf.Clamp(trimReferenceAngle * 0.5f, 0f, sailAngleLimit) * _trimSide;
         CurrentSailAngle = Mathf.MoveTowards(CurrentSailAngle, targetVisualAngle, sailAngleSpeed * Time.fixedDeltaTime);
 
-        float rawForceMagnitude = apparentWindSpeed * EffectiveSailArea * trimEfficiency * efficiencyMultiplier * sailForceCoefficient;
+        // Força BRUTA que a vela captura do vento (capacidade física do
+        // pano, ANTES de qualquer coisa relacionada a modo/trim) - depende
+        // só de vento aparente, área e o multiplicador de eficiência
+        // "genérico" (ex. dano na vela), não mais de trimEfficiency: isso é
+        // o que muda agora - trimEfficiency deixa de escalar a força bruta
+        // como um todo e passa a escalar só o EMPUXO (ver abaixo), pra não
+        // competir com a decomposição geométrica do ângulo de trim.
+        float rawForceMagnitude = apparentWindSpeed * EffectiveSailArea * efficiencyMultiplier * sailForceCoefficient;
         float sailForceMagnitude = Mathf.Min(rawForceMagnitude, maxSailForce);
         result.sailForceMagnitude = sailForceMagnitude;
 
@@ -289,33 +425,41 @@ public class SailSystem : MonoBehaviour
         Vector3 shipForward = new Vector3(Mathf.Cos(headingRad), 0f, Mathf.Sin(headingRad));
         Vector3 shipRight = new Vector3(Mathf.Cos(headingRad - Mathf.PI / 2f), 0f, Mathf.Sin(headingRad - Mathf.PI / 2f));
 
-        // Decomposição thrust/lateral: SEM driftFactor (removido - era um
-        // knob artificial e constante, desconectado do ponto de vela real).
-        // Em vez disso, deriva a fração de cada componente do próprio ÂNGULO
-        // DE TRIM da vela (o mesmo usado no ângulo visual, reaproveitado
-        // aqui pro cálculo de força) - fisicamente: uma vela fechada quase
-        // no eixo do casco (trim baixo, vento de popa) empurra quase 100%
-        // pra frente e quase nada de lado; uma vela bem aberta (trim alto,
-        // vento mais de través/bolina) gera menos empuxo direto e mais
-        // força lateral (heel + deriva) - o mesmo padrão de um veleiro real
-        // (upwind é sempre mais lento e mais adernado que um través).
-        // Usa sin/cos do mesmo ângulo, então thrust²+lateral² = magnitude²
-        // sempre - uma decomposição vetorial real, não dois números
-        // independentes competindo pela mesma força.
-        // Usa o MESMO ângulo de referência do trim (já travado à faixa do
-        // modo selecionado acima) - garante que a direção da força seja
-        // consistente com o ângulo visual da vela: uma vela mal trimada pro
-        // vento atual (ex.: "Contra" com vento de popa) empurra menos pra
-        // frente e mais pro lado (ou quase nada, perto de estolar), em vez
-        // de continuar empurrando 100% pra frente como se estivesse sempre
-        // perfeitamente trimada.
-        float sailTrimAngle = Mathf.Clamp(trimReferenceAngle * 0.5f, 0f, sailAngleLimit) * Mathf.Deg2Rad;
-        float thrustFraction = Mathf.Sin(sailTrimAngle);
-        float lateralFraction = Mathf.Cos(sailTrimAngle);
-
-        float thrustMagnitude = sailForceMagnitude * thrustFraction;
+        // EMPUXO e DERIVA/HEEL são calculados de forma DESACOPLADA agora -
+        // não são mais frações complementares (sin/cos) de uma mesma
+        // decomposição vetorial (thrust²+lateral² deixou de ser igual a
+        // magnitude²). Motivo: aquela decomposição amarrava as duas coisas
+        // a um único ângulo geométrico, o que competia diretamente com o
+        // teto de eficiência por modo (idealEfficiencyTarget) - ex.: Popa
+        // tinha um thrustFraction geométrico muito alto (vela quase no eixo
+        // do casco) que quase anulava o teto de 60% definido pro modo,
+        // deixando Popa mais rápido que Través na prática. Não estamos
+        // simulando aerodinâmica de vela de verdade (não há um "teto"
+        // físico real de 60%/90%/100% em veleiros reais - isso é uma
+        // aproximação de jogo) - então não faz sentido forçar uma
+        // consistência vetorial que só reintroduz o problema. O que
+        // importa: EMPUXO condizente com o modo, e DERIVA convincente pro
+        // jogador. Duas fontes de verdade separadas:
+        //
+        //   EMPUXO = sailForceMagnitude * trimEfficiency (teto do modo +
+        //   quão bem trimado dentro dele - já calculado acima). Simples e
+        //   direto: cada modo empurra proporcionalmente ao seu teto.
+        float thrustMagnitude = sailForceMagnitude * trimEfficiency;
         result.thrustMagnitude = thrustMagnitude;
         result.thrustForce = shipForward * thrustMagnitude;
+
+        //   DERIVA/HEEL = sailForceMagnitude * um coeficiente geométrico
+        //   simples, do ÂNGULO DE TRIM (mesmo usado no ângulo visual da
+        //   vela) - vela fechada perto do eixo do casco (trim baixo, típico
+        //   de Contra) gera bastante força lateral/heel; vela bem aberta
+        //   (trim alto, típico de Popa) gera pouca. Isso é só pra dar uma
+        //   sensação de deriva/adernamento condizente (mais em Contra,
+        //   menos em Popa) - não precisa (e não deve) ser amarrado ao
+        //   empuxo. Independente de trimEfficiency de propósito: mesmo um
+        //   modo com teto baixo (ex. Contra=20%) ainda gera bastante deriva
+        //   de verdade, é isso que "convincente" quer dizer aqui.
+        float sailTrimAngle = Mathf.Clamp(trimReferenceAngle * 0.5f, 0f, sailAngleLimit) * Mathf.Deg2Rad;
+        float lateralFraction = Mathf.Cos(sailTrimAngle);
 
         // Lado: reaproveita _trimSide (já calculado externamente a partir do
         // mesmo vento, no mesmo frame) em vez de recalcular - garante
@@ -327,44 +471,120 @@ public class SailSystem : MonoBehaviour
         return result;
     }
 
-    // Eficiência do TRIM (0-1) dado o ângulo vento-proa e o modo selecionado:
-    // 100% na faixa ideal, acceptableRangeEfficiency na faixa aceitável (com
-    // interpolação suave na borda entre as duas, evitando degrau abrupto),
-    // e queda até 0 ao longo de sharpFalloffRangeDegrees fora da faixa
-    // aceitável.
-    private float CalculateTrimEfficiency(float windAngleFromBow, int modeIndex, out bool inIdeal, out bool inAcceptable)
+    // Eficiência do TRIM (0 a idealEfficiencyTarget) dado o ângulo de
+    // CLASSIFICAÇÃO (vento real, sistema popa=90°) e o modo selecionado:
+    // idealEfficiencyTarget em qualquer uma das idealRanges (teto FÍSICO
+    // daquele ponto de vela - ex.: Través=1.0, Popa=0.6 - ver
+    // SailModeRange), toleranceEfficiencyTarget (valor explícito e
+    // independente por modo, não mais uma fração do teto) em qualquer
+    // acceptRanges (com interpolação suave na borda entre as duas), e queda
+    // até 0 ao longo de sharpFalloffRangeDegrees fora de todas as faixas
+    // aceitáveis. idealRanges[i]/acceptRanges[i] de mesmo índice são
+    // tratadas como o mesmo "lado" (bordo) do modo, para a interpolação.
+    // Numa zona de SOBREPOSIÇÃO entre dois modos adjacentes (ex.: Popa e
+    // Largo), modeIndex é sempre o do modo que o jogador tem SELECIONADO -
+    // esta função nunca olha ou mistura o valor de um modo vizinho.
+    private float CalculateTrimEfficiency(float classificationAngle, int modeIndex, out bool inIdeal, out bool inAcceptable)
     {
         inIdeal = false;
         inAcceptable = false;
 
-        if (sailModes == null || modeIndex < 0 || modeIndex >= sailModes.Length || sailModes[modeIndex] == null)
+        SailModeRange r = GetModeRange(modeIndex);
+        if (r == null || r.idealRanges == null || r.acceptRanges == null || r.idealRanges.Length == 0)
             return 0f;
 
-        SailModeRange r = sailModes[modeIndex];
+        float idealCeiling = r.idealEfficiencyTarget;
+        float acceptCeiling = r.toleranceEfficiencyTarget;
 
-        if (windAngleFromBow >= r.idealMin && windAngleFromBow <= r.idealMax)
+        for (int i = 0; i < r.idealRanges.Length; i++)
         {
-            inIdeal = true;
-            inAcceptable = true;
-            return 1f;
+            if (r.idealRanges[i].Contains(classificationAngle))
+            {
+                inIdeal = true;
+                inAcceptable = true;
+                return idealCeiling;
+            }
         }
 
-        if (windAngleFromBow >= r.acceptMin && windAngleFromBow <= r.acceptMax)
+        for (int i = 0; i < r.acceptRanges.Length; i++)
         {
+            if (!r.acceptRanges[i].Contains(classificationAngle)) continue;
+
             inAcceptable = true;
-            bool belowIdeal = windAngleFromBow < r.idealMin;
-            float distanceIntoAcceptable = belowIdeal ? (r.idealMin - windAngleFromBow) : (windAngleFromBow - r.idealMax);
-            float acceptableWidth = belowIdeal
-                ? Mathf.Max(0.01f, r.idealMin - r.acceptMin)
-                : Mathf.Max(0.01f, r.acceptMax - r.idealMax);
-            float t = Mathf.Clamp01(distanceIntoAcceptable / acceptableWidth);
-            return Mathf.Lerp(1f, acceptableRangeEfficiency, t);
+
+            AngleRange ideal = i < r.idealRanges.Length ? r.idealRanges[i] : r.idealRanges[0];
+            AngleRange accept = r.acceptRanges[i];
+
+            // Descobre de qual lado (borda min ou max) da faixa ideal o
+            // ângulo está mais próximo, pra interpolar usando o "ombro"
+            // (accept-edge -> ideal-edge) correspondente àquele lado.
+            float toIdealMin = Mathf.Abs(Mathf.DeltaAngle(classificationAngle, ideal.min));
+            float toIdealMax = Mathf.Abs(Mathf.DeltaAngle(classificationAngle, ideal.max));
+            bool nearMinSide = toIdealMin <= toIdealMax;
+
+            float distanceIntoAcceptable = nearMinSide ? toIdealMin : toIdealMax;
+            float shoulderWidth = nearMinSide
+                ? Mathf.Max(0.01f, Mathf.Abs(Mathf.DeltaAngle(accept.min, ideal.min)))
+                : Mathf.Max(0.01f, Mathf.Abs(Mathf.DeltaAngle(accept.max, ideal.max)));
+
+            float t = Mathf.Clamp01(distanceIntoAcceptable / shoulderWidth);
+            return Mathf.Lerp(idealCeiling, acceptCeiling, t);
         }
 
-        bool belowAcceptable = windAngleFromBow < r.acceptMin;
-        float distanceOutside = belowAcceptable ? (r.acceptMin - windAngleFromBow) : (windAngleFromBow - r.acceptMax);
+        float distanceOutside = float.MaxValue;
+        for (int i = 0; i < r.acceptRanges.Length; i++)
+        {
+            distanceOutside = Mathf.Min(distanceOutside, r.acceptRanges[i].DistanceTo(classificationAngle));
+        }
+
         float falloffT = Mathf.Clamp01(distanceOutside / Mathf.Max(0.01f, sharpFalloffRangeDegrees));
-        return Mathf.Lerp(acceptableRangeEfficiency, 0f, falloffT);
+        return Mathf.Lerp(acceptCeiling, 0f, falloffT);
+    }
+
+    // --- Conversão entre o sistema do vento REAL (0°-360°, popa=90°/proa=270°,
+    // usado em sailModes/CalculateTrimEfficiency) e o sistema do vento
+    // APARENTE (0°-180°, windAngleFromBow, usado na força/trim visual). Só
+    // usada para derivar automaticamente o clamp do trimReferenceAngle (ver
+    // CalculateForce) - nenhum valor é guardado no Inspector.
+
+    /// <summary>
+    /// Converte um único ângulo do sistema novo (vento real, popa=90°) para
+    /// o equivalente no sistema antigo (vento-proa, 0°-180°, independente de
+    /// bordo). 90°/270° (popa/proa) mapeiam para 0°/180°; 0°/180° (través)
+    /// mapeiam para 90°.
+    /// </summary>
+    private static float NewAngleToApparentBowAngle(float newAngle)
+    {
+        float relative = Mathf.Repeat(newAngle - 90f, 360f) - 180f;
+        return 180f - Mathf.Abs(relative);
+    }
+
+    /// <summary>
+    /// Dobra um conjunto de AngleRange (sistema novo, vento real) no
+    /// equivalente 0°-180° (vento-proa aparente). Como a conversão acima não
+    /// é monotônica nos pontos críticos 90°/270°, também inclui 0°/180° como
+    /// candidatos quando a faixa de entrada cruza esses pontos.
+    /// </summary>
+    private static AngleRange FoldRealRangeToApparentBowRange(AngleRange[] ranges)
+    {
+        if (ranges == null || ranges.Length == 0)
+            return new AngleRange { min = 0f, max = 180f };
+
+        float oldMin = 180f;
+        float oldMax = 0f;
+
+        foreach (AngleRange r in ranges)
+        {
+            float foldMin = NewAngleToApparentBowAngle(r.min);
+            float foldMax = NewAngleToApparentBowAngle(r.max);
+            oldMin = Mathf.Min(oldMin, Mathf.Min(foldMin, foldMax));
+            oldMax = Mathf.Max(oldMax, Mathf.Max(foldMin, foldMax));
+
+            if (r.Contains(90f)) oldMin = 0f;  // Contra: mínimo verdadeiro (dead upwind)
+            if (r.Contains(270f)) oldMax = 180f; // Popa: máximo verdadeiro (dead downwind)
+        }
+
+        return new AngleRange { min = oldMin, max = oldMax };
     }
 
     private string GetModeName(int idx)
@@ -422,40 +642,74 @@ public class SailSystem : MonoBehaviour
         LogModeOverlaps();
     }
 
-    // Reporta, por par de modos vizinhos, quantos graus de sobreposição
-    // existem entre suas faixas ACEITÁVEIS - essa sobreposição é o que
-    // permite que dois modos adjacentes sejam ambos aceitáveis perto do
-    // limite entre eles (pedido: 10-15° de sobreposição). Com os valores
-    // padrão de sailModes já existe ~20° de sobreposição em cada par
-    // (ex.: Contra aceita até 50°, Bolina aceita a partir de 30° -> 20° de
-    // sobreposição) - este log só confirma isso e avisa se você editar os
-    // ranges no Inspector e a sobreposição ficar abaixo do desejado.
+    // Reporta, para cada par de sub-faixas ACEITÁVEIS de modos diferentes que
+    // efetivamente se sobrepõem, quantos graus de sobreposição existem - essa
+    // sobreposição é o que permite que dois modos adjacentes sejam ambos
+    // aceitáveis perto do limite entre eles (pedido: 10-15° de sobreposição).
+    // Como cada modo agora pode ter até 2 sub-faixas (uma por bordo) no
+    // sistema 0°-360°, a adjacência não é mais só "índice i com índice i+1"
+    // - por isso este log verifica TODOS os pares de sub-faixas entre
+    // modos diferentes (com wraparound) e só reporta os que realmente se
+    // tocam; pares de modos não-vizinhos naturalmente não se sobrepõem.
     private void LogModeOverlaps()
     {
         if (sailModes == null) return;
 
-        for (int i = 0; i < sailModes.Length - 1; i++)
+        for (int i = 0; i < sailModes.Length; i++)
         {
             SailModeRange a = sailModes[i];
-            SailModeRange b = sailModes[i + 1];
-            if (a == null || b == null) continue;
+            if (a?.acceptRanges == null) continue;
 
-            float overlap = Mathf.Min(a.acceptMax, b.acceptMax) - Mathf.Max(a.acceptMin, b.acceptMin);
+            for (int j = i + 1; j < sailModes.Length; j++)
+            {
+                SailModeRange b = sailModes[j];
+                if (b?.acceptRanges == null) continue;
 
-            if (overlap < minDesiredModeOverlapDegrees)
-            {
-                Debug.LogWarning(
-                    $"[SailSystem] Sobreposição entre '{a.modeName}' e '{b.modeName}' é de só {overlap:F1}° " +
-                    $"(mínimo desejado: {minDesiredModeOverlapDegrees:F0}°). Aumente acceptMax de '{a.modeName}' " +
-                    $"e/ou diminua acceptMin de '{b.modeName}'.");
-            }
-            else
-            {
-                Debug.Log(
-                    $"[SailSystem] '{a.modeName}' / '{b.modeName}': {overlap:F1}° de sobreposição aceitável " +
-                    $"(>= {minDesiredModeOverlapDegrees:F0}° desejado - ambos os modos ficam aceitáveis nessa faixa).");
+                for (int ai = 0; ai < a.acceptRanges.Length; ai++)
+                {
+                    for (int bi = 0; bi < b.acceptRanges.Length; bi++)
+                    {
+                        float overlap = ComputeOverlapDegrees(a.acceptRanges[ai], b.acceptRanges[bi]);
+                        if (overlap <= 0f) continue;
+
+                        if (overlap < minDesiredModeOverlapDegrees)
+                        {
+                            Debug.LogWarning(
+                                $"[SailSystem] Sobreposição entre '{a.modeName}' e '{b.modeName}' é de só {overlap:F1}° " +
+                                $"(mínimo desejado: {minDesiredModeOverlapDegrees:F0}°). Ajuste as acceptRanges " +
+                                $"correspondentes desses dois modos.");
+                        }
+                        else
+                        {
+                            Debug.Log(
+                                $"[SailSystem] '{a.modeName}' / '{b.modeName}': {overlap:F1}° de sobreposição aceitável " +
+                                $"(>= {minDesiredModeOverlapDegrees:F0}° desejado - ambos os modos ficam aceitáveis nessa faixa).");
+                        }
+                    }
+                }
             }
         }
+    }
+
+    // Sobreposição (em graus) entre dois arcos circulares (0-360, cada um
+    // podendo cruzar 0°/360°) - testa os 3 alinhamentos possíveis (-360/0/+360)
+    // e retorna o maior overlap positivo encontrado; 0 se não há sobreposição.
+    // Válido para arcos estreitos (<180°), que é sempre o caso aqui.
+    private static float ComputeOverlapDegrees(AngleRange a, AngleRange b)
+    {
+        float aStart = NormalizeAngle(a.min);
+        float aLen = Mathf.Repeat(a.max - a.min, 360f);
+        float bStartBase = NormalizeAngle(b.min);
+        float bLen = Mathf.Repeat(b.max - b.min, 360f);
+
+        float best = 0f;
+        for (int shift = -1; shift <= 1; shift++)
+        {
+            float bStart = bStartBase + shift * 360f;
+            float overlap = Mathf.Min(aStart + aLen, bStart + bLen) - Mathf.Max(aStart, bStart);
+            if (overlap > best) best = overlap;
+        }
+        return best;
     }
 
     private int MaxModeIndex => sailModes != null && sailModes.Length > 0 ? sailModes.Length - 1 : 0;
@@ -590,6 +844,8 @@ public class SailSystem : MonoBehaviour
     public float GetCurrentSailOpenAmount() => CurrentSailOpenAmount;
     public float GetEffectiveSailArea() => EffectiveSailArea;
     public float GetEfficiencyMultiplier() => efficiencyMultiplier;
+    public float GetCurrentApparentWindAngle() => CurrentApparentWindAngle;
+    public float GetCurrentApparentWindSpeed() => CurrentApparentWindSpeed;
 
     private void OnValidate()
     {
@@ -611,6 +867,14 @@ public class SailSystem : MonoBehaviour
         if (sailModes != null && sailModes.Length > 0)
         {
             initialSailModeIndex = Mathf.Clamp(initialSailModeIndex, 0, sailModes.Length - 1);
+            foreach (SailModeRange r in sailModes)
+            {
+                if (r != null)
+                {
+                    r.idealEfficiencyTarget = Mathf.Clamp01(r.idealEfficiencyTarget);
+                    r.toleranceEfficiencyTarget = Mathf.Clamp01(r.toleranceEfficiencyTarget);
+                }
+            }
         }
 
         if (commandGroupingWindowSeconds < 0.05f) commandGroupingWindowSeconds = 0.05f;

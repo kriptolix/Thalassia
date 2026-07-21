@@ -62,8 +62,10 @@ public class ShipMovementSystem : MonoBehaviour
     public float CurrentSailAngleUsed { get; private set; }
     public float CurrentSailOpenAmountUsed { get; private set; }
     public float CurrentShipHeadingDeg { get; private set; }
-    /// <summary>Ângulo entre o vento aparente e a PROA (0°-180°, 0=vento na proa, 180=vento na popa).</summary>
+    /// <summary>Ângulo entre o vento aparente e a PROA (0°-180°, 0=vento na proa, 180=vento na popa). Só para HUD/agulha - não decide mais o modo de navegação.</summary>
     public float CurrentWindAngleFromBow { get; private set; }
+    /// <summary>Ângulo do vento REAL no sistema de referência do barco (0°-360°, círculo trigonométrico, popa=90°/proa=270° - ver SailSystem). É este ângulo que decide o modo de navegação.</summary>
+    public float CurrentRealWindClassificationAngle { get; private set; }
     /// <summary>Índice do modo de navegação atual (0=Contra o Vento .. 4=Popa).</summary>
     public int CurrentSailModeIndex { get; private set; }
     /// <summary>Nome do modo de navegação atual, para HUD.</summary>
@@ -152,11 +154,16 @@ public class ShipMovementSystem : MonoBehaviour
             sailSystem.SetTrimSideFromWind(windSide);
         }
 
-        SailSystem.SailForceResult sail = sailSystem.CalculateForce(apparentWind, shipHeadingDeg);
+        // Vento REAL (windVector, sem subtrair a velocidade do barco) e vento
+        // APARENTE (apparentWind) são passados separadamente: o SailSystem usa
+        // o real só para decidir o MODO de navegação e o aparente só para a
+        // FORÇA (ver docstring de SailSystem.CalculateForce).
+        SailSystem.SailForceResult sail = sailSystem.CalculateForce(apparentWind, windVector, shipHeadingDeg);
 
         CurrentSailAngleUsed = sailSystem.GetCurrentSailAngle();
         CurrentSailOpenAmountUsed = sailSystem.GetCurrentSailOpenAmount();
         CurrentWindAngleFromBow = sail.windAngleFromBow;
+        CurrentRealWindClassificationAngle = sail.realWindClassificationAngle;
         CurrentSailModeIndex = sail.sailModeIndex;
         CurrentSailModeName = sail.sailModeName;
         CurrentInIdealRange = sail.inIdealRange;

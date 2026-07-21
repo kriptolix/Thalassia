@@ -22,7 +22,7 @@ public class WindSystem : MonoBehaviour
     [Header("Intensidade a física usa m/s internamente, ver GetWindVector())")]
     [SerializeField] private float minIntensity = 2f;
     [SerializeField] private float maxIntensity = 30f;
-    [SerializeField] private float initialIntensity = 12f;
+    [SerializeField] private float initialIntensity = 8f;
 
     [Header("Direção (graus, 0-360 | 0=Leste, 90=Norte, 180=Oeste, 270=Sul)")]
     [SerializeField] private float initialDirection = 90f;

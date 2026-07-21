@@ -31,3 +31,15 @@ em caso de duvidas me consulte, se precisa ver outros arquivos avise.
 | 0°–45° e 135°–180°            | Través              |                            80–100% | 
 | 180°–240° e 300°–360°         | Largo               |                             70–90% |
 | 240°–300°                     | Popa                |                             40–60% | 
+
+contra = 75°–105°, 70°–110°
+bolina = 45°–75° e 105°–135°, 40°–80° e 100°–140°
+traves = 0°–45° e 135°–180°, 355°–50° e 130°–185°
+largo = 180°–240° e 300°–360°, 175°–245° e 295°–5°
+popa  = 240°–300°, 235°–305°
+
+contra = 15% (minimo) na area de tolerancia, 25% no angulo correto
+bolina = 50% na area de tolerancia, 70% no angulo correto
+traves = 80% na area de tolerancia, 100% no angulo correto
+largo = 70% na area de tolerancia, 90% no angulo correto
+popa  = 40% na area de tolerancia, 60% no angulo correto

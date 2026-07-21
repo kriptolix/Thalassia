@@ -5,44 +5,38 @@ using UnityEngine;
 public class CameraSwitcher : MonoBehaviour
 {
     [Header("Câmeras")]
-    [Tooltip("Câmera padrão, atrás do timão, controlada pelo mouse livre.")]
-    public Camera cameraNavio;
-    [Tooltip("Câmera panorâmica de viagem automática, com os 3 pontos fixos.")]
-    public Camera cameraViagem;
+    [Tooltip("Pelo menos uma camera é obrigatória")]
+    public Transform[] cameras;
 
     [Header("Tecla de atalho")]
     public KeyCode teclaAlternar = KeyCode.Tab;
 
-    private bool viagemAtiva = false;
+    private int cameraAtual = 0;
 
     void Start()
     {
         // Garante um estado inicial consistente: começa na câmera do navio
-        AtivarCamera(cameraNavio, cameraViagem);
+        if (cameras == null || cameras.Length == 0)
+            Debug.LogWarning($"{gameObject.name}: Nenhuma camera configurada!");
+
+        AtivarCamera(cameraAtual);
     }
 
     void Update()
     {
         if (Input.GetKeyDown(teclaAlternar))
         {
-            viagemAtiva = !viagemAtiva;
-
-            if (viagemAtiva)
-                AtivarCamera(cameraViagem, cameraNavio);
-            else
-                AtivarCamera(cameraNavio, cameraViagem);
+            cameraAtual = (cameraAtual + 1) % cameras.Length;
+            AtivarCamera(cameraAtual);
         }
     }
 
-    private void AtivarCamera(Camera paraAtivar, Camera paraDesativar)
+    void AtivarCamera(int indice)
     {
-        paraAtivar.gameObject.SetActive(true);
-        paraDesativar.gameObject.SetActive(false);
-
-        // Garante que só um AudioListener fique ativo por vez
-        AudioListener listenerAtivar = paraAtivar.GetComponent<AudioListener>();
-        AudioListener listenerDesativar = paraDesativar.GetComponent<AudioListener>();
-        if (listenerAtivar != null) listenerAtivar.enabled = true;
-        if (listenerDesativar != null) listenerDesativar.enabled = false;
+        for (int i = 0; i < cameras.Length; i++)
+        {
+            cameras[i].gameObject.SetActive(i == indice);
+        }
     }
+    
 }
