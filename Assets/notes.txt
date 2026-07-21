@@ -43,3 +43,13 @@ bolina = 50% na area de tolerancia, 70% no angulo correto
 traves = 80% na area de tolerancia, 100% no angulo correto
 largo = 70% na area de tolerancia, 90% no angulo correto
 popa  = 40% na area de tolerancia, 60% no angulo correto
+
+A implementação mudou, agora Water Decal (Script) já faz tudo sem necessidade de um HDRP Decal Projector, 
+Surface Foam Dimmer e Deep Foam Dimmer agora são apenas um slider em Water Decal. Water decal tambem tem 
+material (que permite escolher a mascara para mudar a aparencia da espuma), resolução e amplitude. 
+
+Amplitude,se positiva gera uma deformação da agua para cima, se negativa, gera uma deformação da agua para baixo. 
+Ambos os casos geram espuma. A deformação padrão é circular, o efeito em V de separação da agua na proa precisa de um 
+deformador adicionado ao material, na opção de tipo tem bow wave, que permite controlar elevação. Corrija os scripts
+de acordo, eu ja conseguir fazer funcionar ambos os efeitos no modo basico, os scripts seriam apenas para controlar
+espuma e talvez elevação com base na velocidade. 

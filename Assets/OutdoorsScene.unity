@@ -155,6 +155,80 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1299692046}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &93603614
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 93603615}
+  - component: {fileID: 93603616}
+  - component: {fileID: 93603617}
+  m_Layer: 0
+  m_Name: Splash
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &93603615
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 93603614}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 29.77}
+  m_LocalScale: {x: 1.9006, y: 1.9140947, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1299692046}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!114 &93603616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 93603614}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5ede582eab822e4ab05a6a5defb4d9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.WaterDecal
+  scaleMode: 1
+  regionSize: {x: 10, y: 10}
+  amplitude: 1
+  surfaceFoamDimmer: 0.869
+  deepFoamDimmer: 0.848
+  resolution: {x: 256, y: 256}
+  updateMode: 0
+  material: {fileID: 2100000, guid: fba9b9b7f5d62cc8387ed0925471d5d0, type: 2}
+--- !u!114 &93603617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 93603614}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e46817bc5ed3d770a9548a811b27352, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShipBowSplash
+  shipMovement: {fileID: 1299692054}
+  elevationProperty: _Elevation
+  speedForMaxSplash: 5
+  minSplashAtZeroSpeed: 0
+  splashSmoothingSeconds: 0.3
+  maxAmplitude: 0.4
+  maxElevation: 0.8
+  maxSurfaceFoamDimmer: 1
+  maxDeepFoamDimmer: 1
 --- !u!1 &114971863
 GameObject:
   m_ObjectHideFlags: 0
@@ -229,14 +303,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 120793676}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -17602.01, y: 7.80675, z: -18213.39}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1882171017}
   - {fileID: 1125067411}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 866370436}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &146397063
 GameObject:
@@ -285,8 +359,7 @@ MonoBehaviour:
   cameras:
   - {fileID: 1823688467}
   - {fileID: 1752023585}
-  - {fileID: 1505630244}
-  - {fileID: 1096329660}
+  - {fileID: 802895193}
   teclaAlternar: 9
 --- !u!1 &154243885
 GameObject:
@@ -623,6 +696,78 @@ MonoBehaviour:
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
   m_AreaLightEmissiveMeshLayer: -1
+--- !u!1 &259658397
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 259658398}
+  - component: {fileID: 259658399}
+  - component: {fileID: 259658400}
+  m_Layer: 0
+  m_Name: Foam
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &259658398
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 259658397}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: -34.25}
+  m_LocalScale: {x: 1, y: 1, z: 3.3627}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1299692046}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &259658399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 259658397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5ede582eab822e4ab05a6a5defb4d9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.WaterDecal
+  scaleMode: 1
+  regionSize: {x: 10, y: 10}
+  amplitude: 0.2
+  surfaceFoamDimmer: 0.694
+  deepFoamDimmer: 0.706
+  resolution: {x: 256, y: 256}
+  updateMode: 0
+  material: {fileID: -876546973899608171, guid: 9f1661ed5b4d6ee4685ad5683b09a903, type: 3}
+--- !u!114 &259658400
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 259658397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36e9085aabfdb0b7883696da08efdc1f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShipWakeFoam
+  shipMovement: {fileID: 1299692054}
+  speedForMaxEffect: 8
+  minIntensityAtZeroSpeed: 0
+  smoothingSeconds: 0.4
+  maxAmplitude: -0.3
+  maxSurfaceFoamDimmer: 1
+  maxDeepFoamDimmer: 1
 --- !u!1 &262724141
 GameObject:
   m_ObjectHideFlags: 0
@@ -889,84 +1034,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1044431494}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &351326227
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 351326228}
-  - component: {fileID: 351326230}
-  - component: {fileID: 351326229}
-  m_Layer: 0
-  m_Name: Foam
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &351326228
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 351326227}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.00019655004, y: -2.7490067, z: -45.459503}
-  m_LocalScale: {x: 2.279, y: 2.279, z: 2.279}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 3488085}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &351326229
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 351326227}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36e9085aabfdb0b7883696da08efdc1f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ShipWakeFoam
-  hullRenderer: {fileID: 678616638}
-  shipMovement: {fileID: 1299692054}
-  wakeLengthMultiplier: 2.5
-  wakeWidthMultiplier: 1.2
-  hullForwardAxis: 0
-  speedForMaxFoam: 8
-  minFoamAtZeroSpeed: 0
-  foamSmoothingSeconds: 0.4
-  maxSurfaceFoamDimmer: 1
-  maxDeepFoamDimmer: 1
---- !u!114 &351326230
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 351326227}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0050ecd2d32680645848edd91f37442d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.WaterFoamGenerator
-  scaleMode: 1
-  regionSize: {x: 9.999585, y: 10.000013}
-  amplitude: 2.7068853
-  surfaceFoamDimmer: 1
-  deepFoamDimmer: 1
-  resolution: {x: 256, y: 256}
-  updateMode: 0
-  material: {fileID: -876546973899608171, guid: 7e2c0d424490bfc4698c37245b8c63ed, type: 3}
-  m_Version: 2
-  type: 3
-  texture: {fileID: 0}
 --- !u!1 &362343080
 GameObject:
   m_ObjectHideFlags: 0
@@ -1469,12 +1536,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 400056, guid: e286625af9da2b94a8090be8dea80dea, type: 3}
       insertIndex: -1
       addedObject: {fileID: 711141584}
+    - targetCorrespondingSourceObject: {fileID: 400056, guid: e286625af9da2b94a8090be8dea80dea, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 259658398}
+    - targetCorrespondingSourceObject: {fileID: 400056, guid: e286625af9da2b94a8090be8dea80dea, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 93603615}
     - targetCorrespondingSourceObject: {fileID: 400102, guid: e286625af9da2b94a8090be8dea80dea, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1442900385}
-    - targetCorrespondingSourceObject: {fileID: 400102, guid: e286625af9da2b94a8090be8dea80dea, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 351326228}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 100056, guid: e286625af9da2b94a8090be8dea80dea, type: 3}
       insertIndex: -1
@@ -1669,11 +1739,6 @@ Transform:
   - {fileID: 802895193}
   m_Father: {fileID: 1299692046}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!23 &678616638 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 2300100, guid: e286625af9da2b94a8090be8dea80dea, type: 3}
-  m_PrefabInstance: {fileID: 404269612}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &711141583
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2092,13 +2157,48 @@ Transform:
   m_GameObject: {fileID: 841295397}
   serializedVersion: 2
   m_LocalRotation: {x: 0.062505744, y: 0.70786804, z: -0.06314207, w: 0.7007346}
-  m_LocalPosition: {x: -71.6, y: 44.6, z: 0}
+  m_LocalPosition: {x: -76.5, y: 17.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1752023585}
   m_Father: {fileID: 1299692046}
   m_LocalEulerAnglesHint: {x: 10.195, y: 90.58, z: 0}
+--- !u!1 &866370434
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 866370436}
+  m_Layer: 0
+  m_Name: WorldManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &866370436
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 866370434}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1846869209}
+  - {fileID: 1651212685}
+  - {fileID: 120793678}
+  - {fileID: 891364345}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &868925570
 GameObject:
   m_ObjectHideFlags: 0
@@ -2135,6 +2235,55 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 400118, guid: e286625af9da2b94a8090be8dea80dea, type: 3}
   m_PrefabInstance: {fileID: 404269612}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &891364344
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 891364345}
+  - component: {fileID: 891364346}
+  m_Layer: 0
+  m_Name: Sky and Fog Global Volume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &891364345
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891364344}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 866370436}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &891364346
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891364344}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: c306b9c27211cf77d9170ab2a2792dd3, type: 2}
 --- !u!1 &967080683
 GameObject:
   m_ObjectHideFlags: 0
@@ -2170,7 +2319,7 @@ MonoBehaviour:
   largeBand0FadeToggle: 1
   largeBand1FadeToggle: 1
   ripplesFadeToggle: 1
-  supportLargeCurrent: 0
+  supportLargeCurrent: 1
   largeCurrentRes: 512
   largeCurrentSpeedValue: 2.42
   largeCurrentMap: {fileID: 0}
@@ -2188,13 +2337,13 @@ MonoBehaviour:
   deformationRes: 512
   foam: 1
   foamResolution: 512
-  foamPersistenceMultiplier: 0.675
+  foamPersistenceMultiplier: 0.463
   foamCurrentInfluence: 0.6
   foamColor: {r: 1, g: 1, b: 1, a: 1}
-  foamTextureTiling: 0.15
-  foamSmoothness: 1
-  simulationFoamAmount: 0.2
-  supportSimulationFoamMask: 0
+  foamTextureTiling: 0.16
+  foamSmoothness: 0.154
+  simulationFoamAmount: 0.456
+  supportSimulationFoamMask: 1
   simulationFoamMask: {fileID: 0}
   simulationFoamMaskExtent: {x: 100, y: 100}
   simulationFoamMaskOffset: {x: 0, y: 0}
@@ -2240,7 +2389,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  repetitionSize: 500
+  repetitionSize: 1814
   largeOrientationValue: 0
   largeWindSpeed: 93
   largeChaos: 0.85
@@ -2260,7 +2409,7 @@ MonoBehaviour:
   ripplesFadeMode: 1
   ripplesFadeStart: 50
   ripplesFadeDistance: 200
-  simulationMask: 0
+  simulationMask: 1
   maskRes: 512
   waterMask: {fileID: 0}
   waterMaskRemap: {x: 0, y: 1}
@@ -2291,10 +2440,10 @@ MonoBehaviour:
   directLightTipScattering: 0.6
   directLightBodyScattering: 0.5
   maximumHeightOverride: 0
-  caustics: 0
+  caustics: 1
   causticsIntensity: 0.5
   causticsPlaneBlendDistance: 1
-  causticsResolution: 256
+  causticsResolution: 512
   causticsBand: 2
   virtualPlaneDistance: 4
   causticsTilingFactor: 1
@@ -2317,7 +2466,7 @@ MonoBehaviour:
   underWaterScatteringColor: {r: 0, g: 0.27, b: 0.23, a: 1}
   underWaterRefraction: 0
   decalRegionSize: {x: 200, y: 200}
-  decalRegionAnchor: {fileID: 0}
+  decalRegionAnchor: {fileID: 1299692046}
 --- !u!4 &967080685
 Transform:
   m_ObjectHideFlags: 0
@@ -3690,13 +3839,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1651212683}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -17602.01, y: 7.80675, z: -18213.39}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 362343082}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 866370436}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1652283940
 GameObject:
@@ -3732,7 +3881,7 @@ Terrain:
   m_TreeMaximumFullLODCount: 50
   m_DetailObjectDistance: 80
   m_DetailObjectDensity: 1
-  m_HeightmapPixelError: 5
+  m_HeightmapPixelError: 2
   m_SplatMapDistance: 1000
   m_HeightmapMinimumLODSimplification: 0
   m_HeightmapMaximumLOD: 0
@@ -3753,7 +3902,7 @@ Terrain:
   m_GroupingID: 0
   m_RenderingLayerMask: 1
   m_AllowAutoConnect: 1
-  m_EnableHeightmapRayTracing: 1
+  m_EnableHeightmapRayTracing: 0
   m_EnableTreesAndDetailsRayTracing: 0
   m_EnableHeightmapLODFrustumCulling: 1
   m_TreeMotionVectorModeOverride: 3
@@ -4214,7 +4363,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.03
-  far clip plane: 1000
+  far clip plane: 10000
   field of view: 65
   orthographic: 0
   orthographic size: 5
@@ -4228,7 +4377,7 @@ Camera:
   m_TargetEye: 3
   m_HDR: 0
   m_AllowMSAA: 0
-  m_AllowDynamicResolution: 0
+  m_AllowDynamicResolution: 1
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
@@ -4340,7 +4489,7 @@ MonoBehaviour:
   flipYMode: 0
   xrRendering: 1
   fullscreenPassthrough: 0
-  allowDynamicResolution: 0
+  allowDynamicResolution: 1
   customRenderingSettings: 0
   invertFaceCulling: 0
   probeLayerMask:
@@ -4527,12 +4676,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1846869206}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -17602.01, y: 7.80675, z: -18213.39}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 866370436}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1846869210
 MonoBehaviour:
@@ -5262,9 +5411,7 @@ SceneRoots:
   - {fileID: 2063684885}
   - {fileID: 262724142}
   - {fileID: 1044431494}
-  - {fileID: 120793678}
-  - {fileID: 1651212685}
-  - {fileID: 1846869209}
   - {fileID: 265557345}
   - {fileID: 284415345}
   - {fileID: 1096329660}
+  - {fileID: 866370436}

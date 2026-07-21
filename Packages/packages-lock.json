@@ -173,9 +173,9 @@
       }
     },
     "com.unity.render-pipelines.high-definition": {
-      "version": "17.5.0",
+      "version": "file:com.unity.render-pipelines.high-definition",
       "depth": 0,
-      "source": "builtin",
+      "source": "embedded",
       "dependencies": {
         "com.unity.modules.video": "1.0.0",
         "com.unity.modules.animation": "1.0.0",
