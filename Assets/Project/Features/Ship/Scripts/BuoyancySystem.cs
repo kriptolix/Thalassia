@@ -115,6 +115,20 @@ public class BuoyancySystem : MonoBehaviour
     private WaterSearchParameters[] searchParams;
     private WaterSearchResult[] searchResults;
 
+    // --- Dados por ponto, expostos SÓ LEITURA para outros scripts (ex.:
+    // splash de onda batendo no casco) reaproveitarem sem duplicar a busca
+    // de água (que já é razoavelmente cara - iterativa, por ponto). Índices
+    // correspondem 1:1 a floatingPoints. Atualizados uma vez por
+    // FixedUpdate, junto com a física de flutuação.
+    /// <summary>Altura da água (Y, mundo) no ponto de flutuação, do último FixedUpdate.</summary>
+    public float[] WaterHeights { get; private set; }
+    /// <summary>Profundidade (waterHeight - point.y) no ponto de flutuação - positivo = submerso.</summary>
+    public float[] Depths { get; private set; }
+    /// <summary>Velocidade vertical (m/s) de SUBIDA/DESCIDA da superfície da água nesse ponto (não é a velocidade do barco) - positivo = água subindo. Útil pra detectar uma onda "batendo" contra o casco.</summary>
+    public float[] WaterSurfaceVerticalVelocity { get; private set; }
+
+    private float[] _previousWaterHeights;
+
 
     private void Start()
     {
@@ -129,6 +143,14 @@ public class BuoyancySystem : MonoBehaviour
         int count = floatingPoints != null ? floatingPoints.Length : 0;
         searchParams = new WaterSearchParameters[count];
         searchResults = new WaterSearchResult[count];
+        WaterHeights = new float[count];
+        Depths = new float[count];
+        WaterSurfaceVerticalVelocity = new float[count];
+        _previousWaterHeights = new float[count];
+        for (int i = 0; i < count; i++)
+        {
+            _previousWaterHeights[i] = float.NaN;
+        }
         for (int i = 0; i < count; i++)
         {
             searchParams[i] = new WaterSearchParameters();
@@ -253,7 +275,28 @@ public class BuoyancySystem : MonoBehaviour
             if (!TryGetWaterHeight(i, pointPosition, out float waterHeight)) continue;
 
             float depth = waterHeight - pointPosition.y;
-            
+
+            // Velocidade vertical da própria SUPERFÍCIE DA ÁGUA nesse ponto
+            // (não do barco) - positivo = água subindo. É o que diferencia
+            // uma onda "batendo" no casco de um simples bobbing lento: a
+            // água sobe rápido contra o ponto, mesmo que o ponto em si não
+            // esteja se movendo muito. No primeiro frame válido de cada
+            // ponto (_previousWaterHeights ainda não inicializado - sentinel
+            // NaN), não há uma leitura anterior real pra comparar - grava a
+            // altura atual e pula o cálculo de velocidade só dessa vez, pra
+            // não gerar um pico falso (waterHeight - 0) / dt.
+            if (float.IsNaN(_previousWaterHeights[i]))
+            {
+                WaterSurfaceVerticalVelocity[i] = 0f;
+            }
+            else
+            {
+                WaterSurfaceVerticalVelocity[i] = (waterHeight - _previousWaterHeights[i]) / Mathf.Max(Time.fixedDeltaTime, 0.0001f);
+            }
+            _previousWaterHeights[i] = waterHeight;
+            WaterHeights[i] = waterHeight;
+            Depths[i] = depth;
+
             float submersionFactor = Mathf.Clamp01((depth + surfaceTransitionBand * 0.5f) / surfaceTransitionBand);
 
             if (submersionFactor <= 0f) continue;

@@ -53,3 +53,5 @@ Ambos os casos geram espuma. A deformação padrão é circular, o efeito em V d
 deformador adicionado ao material, na opção de tipo tem bow wave, que permite controlar elevação. Corrija os scripts
 de acordo, eu ja conseguir fazer funcionar ambos os efeitos no modo basico, os scripts seriam apenas para controlar
 espuma e talvez elevação com base na velocidade. 
+
+noite não tem fonte de luz nem estrelas
