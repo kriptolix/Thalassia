@@ -33,7 +33,7 @@ using UnityEngine.Events;
 /// spec, estão documentadas nos comentários dos respectivos métodos
 /// (TwilightFactor, cor da luz via Gradient).
 /// </summary>
-public class DayNightCycle : MonoBehaviour
+public class SunMoonSystem : MonoBehaviour
 {
     // ---------------------------------------------------------------
     // Referências (Inspector)

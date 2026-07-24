@@ -934,7 +934,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.ProbeVolumePerSceneData
   serializedBakingSet: {fileID: 0}
-  sceneGUID: 38e6de3d75864c3a2a2408f5a4551134
+  sceneGUID: 901544b1108025dca88515d1183ab7b4
   obsoleteAsset: {fileID: 0}
   obsoleteCellSharedDataAsset: {fileID: 0}
   obsoleteCellSupportDataAsset: {fileID: 0}
@@ -1819,7 +1819,7 @@ VisualEffect:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1897216205}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: 56e88ea7a7102ffa38e3089a817f24a1, type: 3}
+  m_Asset: {fileID: 8926484042661614526, guid: a2bc0fc35bbd41323b939f26f30286a7, type: 3}
   m_InitialEventName: OnPlay
   m_InitialEventNameOverriden: 0
   m_StartSeed: 0
@@ -1859,7 +1859,7 @@ Transform:
   m_GameObject: {fileID: 1897216205}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.34929, y: 2.004, z: 4.4951}
+  m_LocalPosition: {x: -0.34929, y: 2.53, z: 4.4951}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
